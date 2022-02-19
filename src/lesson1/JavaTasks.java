@@ -105,7 +105,7 @@ public class JavaTasks {
      */
     //Сложность O(n)
     //Ресурсоёмкость O(1)
-    static public void sortTemperatures(String inputName, String outputName) {
+    static public void sortTemperatures(String inputName, String outputName) throws IOException {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(inputName)));
              FileWriter writer = new FileWriter(outputName)) {
 
@@ -124,8 +124,6 @@ public class JavaTasks {
                 }
             }
 
-        } catch (IOException e) {
-            e.printStackTrace();
         }
     }
 
@@ -166,7 +164,7 @@ public class JavaTasks {
      */
     //Сложность O(nlog(n))
     //Ресурсоёмкость O(n)
-    static public void sortSequence(String inputName, String outputName) {
+    static public void sortSequence(String inputName, String outputName) throws IOException {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(inputName)));
              FileWriter fileWriter = new FileWriter(outputName)) {
 
@@ -208,8 +206,6 @@ public class JavaTasks {
             for (int i = 0; i < maxRepeatings; i++) {
                 fileWriter.write(repeatedNumber + "\n");
             }
-        } catch (IOException e) {
-            e.printStackTrace();
         }
     }
 
