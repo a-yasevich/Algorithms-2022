@@ -18,14 +18,6 @@ public class BinarySearchTree<T extends Comparable<T>> extends AbstractSet<T> im
             this.value = value;
         }
 
-        @Override
-        public String toString() {
-            return "Node{" +
-                    "value=" + value +
-                    ", left=" + (left == null ? null : left.value) +
-                    ", right=" + (right == null ? null : right.value) +
-                    '}';
-        }
     }
 
     private Node<T> root = null;
