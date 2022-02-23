@@ -21,7 +21,7 @@ public class BinarySearchTree<T extends Comparable<T>> extends AbstractSet<T> im
     }
 
     private Node<T> root = null;
-    private int size = 0;
+    protected int size = 0;
 
     @Override
     public int size() {
@@ -268,8 +268,7 @@ public class BinarySearchTree<T extends Comparable<T>> extends AbstractSet<T> im
     @NotNull
     @Override
     public SortedSet<T> subSet(T fromElement, T toElement) {
-        // TODO
-        throw new NotImplementedError();
+        return new SmallerTree<>(fromElement, toElement, this);
     }
 
     /**
@@ -352,6 +351,68 @@ public class BinarySearchTree<T extends Comparable<T>> extends AbstractSet<T> im
         if (left != null && (left.value.compareTo(node.value) >= 0 || !checkInvariant(left))) return false;
         Node<T> right = node.right;
         return right == null || right.value.compareTo(node.value) > 0 && checkInvariant(right);
+    }
+
+    private static class SmallerTree<T extends Comparable<T>> extends BinarySearchTree<T> {
+        T fromElement;
+        T toElement;
+        BinarySearchTree<T> parentTree;
+
+        public SmallerTree(T fromElement, T toElement, BinarySearchTree<T> parentTree) {
+            this.fromElement = fromElement;
+            this.toElement = toElement;
+            this.parentTree = parentTree;
+            this.size = -1;
+        }
+
+        @Override
+        public int size() {
+            if (size != -1) {
+                return size;
+            }
+            size = 0;
+            for (T element : parentTree) {
+                if (element.compareTo(toElement) >= 0) {
+                    break;
+                }
+                if (element.compareTo(fromElement) >= 0) {
+                    size++;
+                }
+            }
+            return size;
+        }
+
+        @Override
+        public boolean contains(Object o) {
+            T t = (T) o;
+            if (t.compareTo(fromElement) < 0 || t.compareTo(toElement) >= 0) {
+                return false;
+            }
+            return parentTree.contains(o);
+        }
+
+        @Override
+        public boolean add(T t) {
+            if (t.compareTo(fromElement) < 0 || t.compareTo(toElement) >= 0) {
+                throw new IllegalArgumentException();
+            }
+            return parentTree.add(t);
+        }
+
+        @Override
+        public boolean remove(Object o) {
+            T t = (T) o;
+            if (t.compareTo(fromElement) < 0 || t.compareTo(toElement) >= 0) {
+                throw new IllegalArgumentException();
+            }
+            return parentTree.remove(o);
+        }
+
+        @NotNull
+        @Override
+        public SortedSet<T> subSet(T fromElement, T toElement) {
+            return super.subSet(fromElement, toElement);
+        }
     }
 
 }
