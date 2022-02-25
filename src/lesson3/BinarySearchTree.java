@@ -21,7 +21,7 @@ public class BinarySearchTree<T extends Comparable<T>> extends AbstractSet<T> im
     }
 
     private Node<T> root = null;
-    protected int size = 0;
+    int size = 0;
 
     @Override
     public int size() {
@@ -268,7 +268,7 @@ public class BinarySearchTree<T extends Comparable<T>> extends AbstractSet<T> im
     @NotNull
     @Override
     public SortedSet<T> subSet(T fromElement, T toElement) {
-        return new SmallerTree<>(fromElement, toElement, this);
+        return new SubTree<>(fromElement, toElement, this);
     }
 
     /**
@@ -353,23 +353,25 @@ public class BinarySearchTree<T extends Comparable<T>> extends AbstractSet<T> im
         return right == null || right.value.compareTo(node.value) > 0 && checkInvariant(right);
     }
 
-    private static class SmallerTree<T extends Comparable<T>> extends BinarySearchTree<T> {
-        T fromElement;
-        T toElement;
-        BinarySearchTree<T> parentTree;
+    private static class SubTree<T extends Comparable<T>> extends BinarySearchTree<T> {
+        private final T fromElement;
+        private final T toElement;
+        private final BinarySearchTree<T> parentTree;
+        private int fixedParentSize;
 
-        public SmallerTree(T fromElement, T toElement, BinarySearchTree<T> parentTree) {
+        public SubTree(T fromElement, T toElement, BinarySearchTree<T> parentTree) {
             this.fromElement = fromElement;
             this.toElement = toElement;
             this.parentTree = parentTree;
-            this.size = -1;
+            this.fixedParentSize = parentTree.size();
         }
 
         @Override
         public int size() {
-            if (size != -1) {
+            if (parentTree.size == fixedParentSize) {
                 return size;
             }
+            fixedParentSize = parentTree.size();
             size = 0;
             for (T element : parentTree) {
                 if (element.compareTo(toElement) >= 0) {
@@ -406,12 +408,6 @@ public class BinarySearchTree<T extends Comparable<T>> extends AbstractSet<T> im
                 throw new IllegalArgumentException();
             }
             return parentTree.remove(o);
-        }
-
-        @NotNull
-        @Override
-        public SortedSet<T> subSet(T fromElement, T toElement) {
-            return super.subSet(fromElement, toElement);
         }
     }
 
