@@ -398,7 +398,12 @@ public class BinarySearchTree<T extends Comparable<T>> extends AbstractSet<T> im
             if (t.compareTo(fromElement) < 0 || t.compareTo(toElement) >= 0) {
                 throw new IllegalArgumentException();
             }
-            return parentTree.add(t);
+            boolean added = parentTree.add(t);
+            if (added) {
+                size++;
+                fixedParentSize++;
+            }
+            return added;
         }
 
         @Override
@@ -407,7 +412,12 @@ public class BinarySearchTree<T extends Comparable<T>> extends AbstractSet<T> im
             if (t.compareTo(fromElement) < 0 || t.compareTo(toElement) >= 0) {
                 throw new IllegalArgumentException();
             }
-            return parentTree.remove(o);
+            boolean removed = parentTree.remove(o);
+            if (removed) {
+                size--;
+                fixedParentSize--;
+            }
+            return removed;
         }
     }
 
