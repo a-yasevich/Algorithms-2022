@@ -21,6 +21,7 @@ public class BinarySearchTree<T extends Comparable<T>> extends AbstractSet<T> im
     }
 
     private Node<T> root = null;
+    private final List<SubTree<T>> subTrees = new ArrayList<>();
     int size = 0;
 
     @Override
@@ -82,6 +83,11 @@ public class BinarySearchTree<T extends Comparable<T>> extends AbstractSet<T> im
             closest.right = newNode;
         }
         size++;
+        for (SubTree<T> subTree : subTrees) {
+            if (!subTree.isInvalid(t)) {
+                subTree.size++;
+            }
+        }
         return true;
     }
 
@@ -118,6 +124,11 @@ public class BinarySearchTree<T extends Comparable<T>> extends AbstractSet<T> im
             start.right = remove(start.right, value);
         } else {
             size--;
+            for (SubTree<T> subTree : subTrees) {
+                if (!subTree.isInvalid(value)) {
+                    subTree.size--;
+                }
+            }
             start = innerRemove(start);
         }
         return start;
@@ -268,7 +279,9 @@ public class BinarySearchTree<T extends Comparable<T>> extends AbstractSet<T> im
     @NotNull
     @Override
     public SortedSet<T> subSet(T fromElement, T toElement) {
-        return new SubTree<>(fromElement, toElement, this);
+        SubTree<T> subTree = new SubTree<>(fromElement, toElement, this);
+        subTrees.add(subTree);
+        return subTree;
     }
 
     /**
@@ -288,8 +301,9 @@ public class BinarySearchTree<T extends Comparable<T>> extends AbstractSet<T> im
     @NotNull
     @Override
     public SortedSet<T> headSet(T toElement) {
-        // TODO
-        throw new NotImplementedError();
+        SubTree<T> subTree = new SubTree<>(null, toElement, this);
+        subTrees.add(subTree);
+        return subTree;
     }
 
     /**
@@ -309,8 +323,9 @@ public class BinarySearchTree<T extends Comparable<T>> extends AbstractSet<T> im
     @NotNull
     @Override
     public SortedSet<T> tailSet(T fromElement) {
-        // TODO
-        throw new NotImplementedError();
+        SubTree<T> subTree = new SubTree<>(fromElement, null, this);
+        subTrees.add(subTree);
+        return subTree;
     }
 
     @Override
@@ -357,37 +372,17 @@ public class BinarySearchTree<T extends Comparable<T>> extends AbstractSet<T> im
         private final T fromElement;
         private final T toElement;
         private final BinarySearchTree<T> parentTree;
-        private int fixedParentSize;
 
         public SubTree(T fromElement, T toElement, BinarySearchTree<T> parentTree) {
             this.fromElement = fromElement;
             this.toElement = toElement;
             this.parentTree = parentTree;
-            this.fixedParentSize = parentTree.size();
-        }
-
-        @Override
-        public int size() {
-            if (parentTree.size == fixedParentSize) {
-                return size;
-            }
-            fixedParentSize = parentTree.size();
-            size = 0;
-            for (T element : parentTree) {
-                if (element.compareTo(toElement) >= 0) {
-                    break;
-                }
-                if (element.compareTo(fromElement) >= 0) {
-                    size++;
-                }
-            }
-            return size;
         }
 
         @Override
         public boolean contains(Object o) {
             T t = (T) o;
-            if (t.compareTo(fromElement) < 0 || t.compareTo(toElement) >= 0) {
+            if (isInvalid(t)) {
                 return false;
             }
             return parentTree.contains(o);
@@ -395,29 +390,24 @@ public class BinarySearchTree<T extends Comparable<T>> extends AbstractSet<T> im
 
         @Override
         public boolean add(T t) {
-            if (t.compareTo(fromElement) < 0 || t.compareTo(toElement) >= 0) {
+            if (isInvalid(t)) {
                 throw new IllegalArgumentException();
             }
-            boolean added = parentTree.add(t);
-            if (added) {
-                size++;
-                fixedParentSize++;
-            }
-            return added;
+            return parentTree.add(t);
         }
 
         @Override
         public boolean remove(Object o) {
             T t = (T) o;
-            if (t.compareTo(fromElement) < 0 || t.compareTo(toElement) >= 0) {
+            if (isInvalid(t)) {
                 throw new IllegalArgumentException();
             }
-            boolean removed = parentTree.remove(o);
-            if (removed) {
-                size--;
-                fixedParentSize--;
-            }
-            return removed;
+            return parentTree.remove(o);
+        }
+
+        private boolean isInvalid(T value) {
+            return (fromElement != null && value.compareTo(fromElement) < 0)
+                    || (toElement != null && value.compareTo(toElement) >= 0);
         }
     }
 
