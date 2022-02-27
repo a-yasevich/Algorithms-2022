@@ -383,6 +383,28 @@ abstract class AbstractBinarySearchTreeTest {
                 validElementCounter, subSet.size,
                 "The size of the subset is not as expected."
             )
+
+            val iterator = initialSet.iterator()
+            while (iterator.hasNext()) {
+                val value = iterator.next()
+                if (value in fromElement until toToElement) {
+                    iterator.remove()
+                    validElementCounter--
+                    allElementCounter--
+                    break
+                }
+            }
+            initialSet.add(random.nextInt(50) + 200)
+            allElementCounter++
+            assertEquals(
+                allElementCounter, initialSet.size,
+                "The size of the initial set is not as expected."
+            )
+            assertEquals(
+                validElementCounter, subSet.size,
+                "Removing a valid value from the initial set has no effect on the subset size"
+            )
+
             println("All clear!")
         }
     }
