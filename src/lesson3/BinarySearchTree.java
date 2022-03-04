@@ -2,7 +2,6 @@ package lesson3;
 
 import java.util.*;
 
-import kotlin.NotImplementedError;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -24,6 +23,7 @@ public class BinarySearchTree<T extends Comparable<T>> extends AbstractSet<T> im
     private final List<SubTree<T>> subTrees = new ArrayList<>();
     int size = 0;
 
+    //Сложность O(1)
     @Override
     public int size() {
         return size;
@@ -47,6 +47,7 @@ public class BinarySearchTree<T extends Comparable<T>> extends AbstractSet<T> im
         }
     }
 
+    //Сложность O(log(n))
     @Override
     public boolean contains(Object o) {
         @SuppressWarnings("unchecked")
@@ -65,6 +66,7 @@ public class BinarySearchTree<T extends Comparable<T>> extends AbstractSet<T> im
      * <p>
      * Пример
      */
+    //Сложность O(log(n))
     @Override
     public boolean add(T t) {
         Node<T> closest = find(t);
@@ -84,7 +86,7 @@ public class BinarySearchTree<T extends Comparable<T>> extends AbstractSet<T> im
         }
         size++;
         for (SubTree<T> subTree : subTrees) {
-            if (!subTree.isInvalid(t)) {
+            if (subTree.isValueValid(t)) {
                 subTree.size++;
             }
         }
@@ -102,6 +104,7 @@ public class BinarySearchTree<T extends Comparable<T>> extends AbstractSet<T> im
      * <p>
      * Средняя
      */
+    //Сложность O(log(n))
     @Override
     public boolean remove(Object o) {
         if (root == null) {
@@ -125,7 +128,7 @@ public class BinarySearchTree<T extends Comparable<T>> extends AbstractSet<T> im
         } else {
             size--;
             for (SubTree<T> subTree : subTrees) {
-                if (!subTree.isInvalid(value)) {
+                if (subTree.isValueValid(value)) {
                     subTree.size--;
                 }
             }
@@ -173,6 +176,8 @@ public class BinarySearchTree<T extends Comparable<T>> extends AbstractSet<T> im
         return null;
     }
 
+    //Сложность O(log(n))
+    //Ресурсоёмкость O(n)
     @NotNull
     @Override
     public Iterator<T> iterator() {
@@ -201,6 +206,7 @@ public class BinarySearchTree<T extends Comparable<T>> extends AbstractSet<T> im
          * <p>
          * Средняя
          */
+        //Сложность O(1)
         @Override
         public boolean hasNext() {
             return !stack.isEmpty();
@@ -219,6 +225,7 @@ public class BinarySearchTree<T extends Comparable<T>> extends AbstractSet<T> im
          * <p>
          * Средняя
          */
+        //Сложность O(log(n))
         @Override
         public T next() {
             if (stack.isEmpty()) {
@@ -246,6 +253,7 @@ public class BinarySearchTree<T extends Comparable<T>> extends AbstractSet<T> im
          * <p>
          * Сложная
          */
+        //Сложность O(1)
         @Override
         public void remove() {
             if (prev == null) {
@@ -276,6 +284,7 @@ public class BinarySearchTree<T extends Comparable<T>> extends AbstractSet<T> im
      * <p>
      * Очень сложная (в том случае, если спецификация реализуется в полном объёме)
      */
+    //Сложность O(1)
     @NotNull
     @Override
     public SortedSet<T> subSet(T fromElement, T toElement) {
@@ -298,6 +307,7 @@ public class BinarySearchTree<T extends Comparable<T>> extends AbstractSet<T> im
      * <p>
      * Сложная
      */
+    //Сложность O(1)
     @NotNull
     @Override
     public SortedSet<T> headSet(T toElement) {
@@ -320,6 +330,7 @@ public class BinarySearchTree<T extends Comparable<T>> extends AbstractSet<T> im
      * <p>
      * Сложная
      */
+    //Сложность O(1)
     @NotNull
     @Override
     public SortedSet<T> tailSet(T fromElement) {
@@ -328,6 +339,7 @@ public class BinarySearchTree<T extends Comparable<T>> extends AbstractSet<T> im
         return subTree;
     }
 
+    //Сложность O(log(n))
     @Override
     public T first() {
         if (root == null) throw new NoSuchElementException();
@@ -338,6 +350,7 @@ public class BinarySearchTree<T extends Comparable<T>> extends AbstractSet<T> im
         return current.value;
     }
 
+    //Сложность O(log(n))
     @Override
     public T last() {
         if (root == null) throw new NoSuchElementException();
@@ -379,35 +392,99 @@ public class BinarySearchTree<T extends Comparable<T>> extends AbstractSet<T> im
             this.parentTree = parentTree;
         }
 
+        //Сложность O(log(n))
         @Override
         public boolean contains(Object o) {
             T t = (T) o;
-            if (isInvalid(t)) {
+            if (!isValueValid(t)) {
                 return false;
             }
             return parentTree.contains(o);
         }
 
+        //Сложность O(log(n))
         @Override
         public boolean add(T t) {
-            if (isInvalid(t)) {
+            if (!isValueValid(t)) {
                 throw new IllegalArgumentException();
             }
             return parentTree.add(t);
         }
 
+        //Сложность O(log(n))
         @Override
         public boolean remove(Object o) {
             T t = (T) o;
-            if (isInvalid(t)) {
+            if (!isValueValid(t)) {
                 throw new IllegalArgumentException();
             }
             return parentTree.remove(o);
         }
 
-        private boolean isInvalid(T value) {
-            return (fromElement != null && value.compareTo(fromElement) < 0)
-                    || (toElement != null && value.compareTo(toElement) >= 0);
+        //Сложность O(log(n))
+        @Override
+        public T first() {
+            Node<T> closest = findFirst(parentTree.root);
+            if (closest == null) {
+                throw new NoSuchElementException();
+            }
+            return closest.value;
+        }
+
+        //Сложность O(log(n))
+        @Override
+        public T last() {
+            Node<T> closest = findLast(parentTree.root);
+            if (closest == null) {
+                throw new NoSuchElementException();
+            }
+            return closest.value;
+        }
+
+        private Node<T> findFirst(Node<T> start) {
+            if (start == null) {
+                return null;
+            }
+            int comparison = fromElement.compareTo(start.value);
+            if (comparison == 0) {
+                return start;
+            }
+            Node<T> ok = !isValueValid(start.value) ? null : start;
+            if (comparison < 0) {
+                if (start.left == null) return ok;
+                Node<T> smaller = findFirst(start.left);
+                return smaller == null ? ok : smaller;
+
+            } else {
+                if (start.right == null) return ok;
+                Node<T> bigger = findFirst(start.right);
+                return ok == null ? bigger : ok;
+            }
+
+        }
+
+        private Node<T> findLast(Node<T> start) {
+            if (start == null) {
+                return null;
+            }
+            int comparison = toElement.compareTo(start.value);
+            Node<T> ok = !isValueValid(start.value) ? null : start;
+            if (comparison <= 0) {
+                if (start.left == null) return ok;
+                Node<T> smaller = findLast(start.left);
+                return ok == null ? smaller : ok;
+
+            } else {
+                if (start.right == null) return ok;
+                Node<T> bigger = findLast(start.right);
+                return bigger == null ? ok : bigger;
+            }
+
+        }
+
+        private boolean isValueValid(T value) {
+            return (fromElement == null || value.compareTo(fromElement) >= 0)
+                    && (toElement == null || value.compareTo(toElement) < 0);
         }
     }
 
