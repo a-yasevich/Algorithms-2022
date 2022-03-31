@@ -97,81 +97,71 @@ public class Trie extends AbstractSet<String> implements Set<String> {
     private class PrefixTreeIterator implements Iterator<String> {
         private final Deque<Iterator<Map.Entry<Character, Node>>> stack;
         private final StringBuilder builder = new StringBuilder();
-        private Iterator<Map.Entry<Character, Node>> current;
-        private String next;
+        private Iterator<Map.Entry<Character, Node>> removeFrom;
 
         private PrefixTreeIterator() {
             stack = new ArrayDeque<>();
-            current = root.children.entrySet().iterator();
-            setNext();
-            next = builder.isEmpty() ? null : builder.substring(0, builder.length() - 1);
+            Iterator<Map.Entry<Character, Node>> rootIterator = root.children.entrySet().iterator(); //first letters iterator
+            if (rootIterator.hasNext()) {
+                stack.push(rootIterator);
+            }
         }
 
         @Override
         public boolean hasNext() {
-            return next != null;
+            return !stack.isEmpty();
         }
 
         @Override
         public String next() {
-            String nextToGive = next;
-            next = null;
-            current = stack.pop();
-            while (stack.size() > 0 && !current.hasNext()) {
-                current = stack.pop();
-                builder.deleteCharAt(builder.length() - 1);
-            }
-            builder.deleteCharAt(builder.length() - 1);
             setNext();
-            next = builder.isEmpty() ? null : builder.substring(0, builder.length() - 1);
-            return nextToGive;
+            String next = builder.substring(0, builder.length() - 1);
+            if (builder.isEmpty()) {
+                throw new NoSuchElementException();
+            }
+            resetToTheStartOfNextWord();
+            return next;
         }
 
         private void setNext() {
-            while (current.hasNext()) {
-                Map.Entry<Character, Node> next = current.next();
-                stack.push(current);
+            Iterator<Map.Entry<Character, Node>> cur = stack.pop();
+            removeFrom = cur;
+            Iterator<Map.Entry<Character, Node>> fork = cur;
+
+            while (cur.hasNext()) {
+                Map.Entry<Character, Node> next = cur.next();
+                if (cur.hasNext()) {
+                    fork = cur;
+                }
                 builder.append(next.getKey());
-                current = next.getValue().children.entrySet().iterator();
+                stack.push(cur);
+                cur = next.getValue().children.entrySet().iterator();
+            }
+            removeFrom = fork;
+        }
+
+        private void resetToTheStartOfNextWord() {
+            //deleting Nth letter to select another
+            builder.deleteCharAt(builder.length() - 1);
+            while (stack.size() > 0 && !stack.peek().hasNext()) {
+                //no another letter n => deleting letter (n - 1) to select another (n - 1)th letter
+                if (stack.size() == 1 && !stack.peek().hasNext()) {
+                    //no another 1st letter
+                    stack.pop();
+                    return;
+                }
+                stack.pop();
+                builder.deleteCharAt(builder.length() - 1);
             }
         }
 
-        /**
-         * Удаление предыдущего элемента
-         * <p>
-         * Функция удаляет из множества элемент, возвращённый крайним вызовом функции next().
-         * <p>
-         * Бросает IllegalStateException, если функция была вызвана до первого вызова next() или же была вызвана
-         * более одного раза после любого вызова next().
-         * <p>
-         * Спецификация: {@link Iterator#remove()} (Ctrl+Click по remove)
-         * <p>
-         * Сложная
-         */
-        //Сложность O(1)
         @Override
         public void remove() {
-//            if (prev == null) {
-//                throw new IllegalStateException();
-//            }
-//            if (root == prevParent) {
-//                BinarySearchTree.this.remove(prev.value);
-//            } else {
-//                BinarySearchTree.this.remove(prevParent, prev.value);
-//            }
-//            prev = null;
+            if (removeFrom == null) {
+                throw new IllegalStateException();
+            }
+            removeFrom.remove();
+            size--;
         }
     }
-
-    public static void main(String[] args) {
-        Trie trie = new Trie();
-        trie.add("D");
-        trie.add("Dog");
-        Iterator<String> iterator = trie.iterator();
-        while (iterator.hasNext()) {
-            System.out.println(iterator.next());
-        }
-        //System.out.println(trie.contains("Artem"));
-    }
-
 }
