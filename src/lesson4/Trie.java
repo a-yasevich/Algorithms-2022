@@ -1,7 +1,6 @@
 package lesson4;
 
 import java.util.*;
-import kotlin.NotImplementedError;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -84,16 +83,95 @@ public class Trie extends AbstractSet<String> implements Set<String> {
 
     /**
      * Итератор для префиксного дерева
-     *
+     * <p>
      * Спецификация: {@link Iterator} (Ctrl+Click по Iterator)
-     *
+     * <p>
      * Сложная
      */
     @NotNull
     @Override
     public Iterator<String> iterator() {
-        // TODO
-        throw new NotImplementedError();
+        return new PrefixTreeIterator();
+    }
+
+    private class PrefixTreeIterator implements Iterator<String> {
+        private final Deque<Iterator<Map.Entry<Character, Node>>> stack;
+        private final StringBuilder builder = new StringBuilder();
+        private Iterator<Map.Entry<Character, Node>> current;
+        private String next;
+
+        private PrefixTreeIterator() {
+            stack = new ArrayDeque<>();
+            current = root.children.entrySet().iterator();
+            setNext();
+            next = builder.isEmpty() ? null : builder.substring(0, builder.length() - 1);
+        }
+
+        @Override
+        public boolean hasNext() {
+            return next != null;
+        }
+
+        @Override
+        public String next() {
+            String nextToGive = next;
+            next = null;
+            current = stack.pop();
+            while (stack.size() > 0 && !current.hasNext()) {
+                current = stack.pop();
+                builder.deleteCharAt(builder.length() - 1);
+            }
+            builder.deleteCharAt(builder.length() - 1);
+            setNext();
+            next = builder.isEmpty() ? null : builder.substring(0, builder.length() - 1);
+            return nextToGive;
+        }
+
+        private void setNext() {
+            while (current.hasNext()) {
+                Map.Entry<Character, Node> next = current.next();
+                stack.push(current);
+                builder.append(next.getKey());
+                current = next.getValue().children.entrySet().iterator();
+            }
+        }
+
+        /**
+         * Удаление предыдущего элемента
+         * <p>
+         * Функция удаляет из множества элемент, возвращённый крайним вызовом функции next().
+         * <p>
+         * Бросает IllegalStateException, если функция была вызвана до первого вызова next() или же была вызвана
+         * более одного раза после любого вызова next().
+         * <p>
+         * Спецификация: {@link Iterator#remove()} (Ctrl+Click по remove)
+         * <p>
+         * Сложная
+         */
+        //Сложность O(1)
+        @Override
+        public void remove() {
+//            if (prev == null) {
+//                throw new IllegalStateException();
+//            }
+//            if (root == prevParent) {
+//                BinarySearchTree.this.remove(prev.value);
+//            } else {
+//                BinarySearchTree.this.remove(prevParent, prev.value);
+//            }
+//            prev = null;
+        }
+    }
+
+    public static void main(String[] args) {
+        Trie trie = new Trie();
+        trie.add("D");
+        trie.add("Dog");
+        Iterator<String> iterator = trie.iterator();
+        while (iterator.hasNext()) {
+            System.out.println(iterator.next());
+        }
+        //System.out.println(trie.contains("Artem"));
     }
 
 }
