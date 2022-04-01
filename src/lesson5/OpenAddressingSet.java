@@ -3,9 +3,7 @@ package lesson5;
 import kotlin.NotImplementedError;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.AbstractSet;
-import java.util.Iterator;
-import java.util.Set;
+import java.util.*;
 
 public class OpenAddressingSet<T> extends AbstractSet<T> {
 
@@ -14,6 +12,7 @@ public class OpenAddressingSet<T> extends AbstractSet<T> {
     private final int capacity;
 
     private final Object[] storage;
+    private final boolean[] deletedMark;
 
     private int size = 0;
 
@@ -28,6 +27,7 @@ public class OpenAddressingSet<T> extends AbstractSet<T> {
         this.bits = bits;
         capacity = 1 << bits;
         storage = new Object[capacity];
+        deletedMark = new boolean[capacity];
     }
 
     @Override
@@ -43,21 +43,24 @@ public class OpenAddressingSet<T> extends AbstractSet<T> {
         int index = startingIndex(o);
         Object current = storage[index];
         while (current != null) {
-            if (current.equals(o)) {
+            if (current.equals(o) && !deletedMark[index]) {
                 return true;
             }
             index = (index + 1) % capacity;
             current = storage[index];
+            if (index == startingIndex(o)) {
+                return false;
+            }
         }
         return false;
     }
 
     /**
      * Добавление элемента в таблицу.
-     *
+     * <p>
      * Не делает ничего и возвращает false, если такой же элемент уже есть в таблице.
      * В противном случае вставляет элемент в таблицу и возвращает true.
-     *
+     * <p>
      * Бросает исключение (IllegalStateException) в случае переполнения таблицы.
      * Обычно Set не предполагает ограничения на размер и подобных контрактов,
      * но в данном случае это было введено для упрощения кода.
@@ -66,10 +69,14 @@ public class OpenAddressingSet<T> extends AbstractSet<T> {
     public boolean add(T t) {
         int startingIndex = startingIndex(t);
         int index = startingIndex;
+        int deletedIndex = -1;
         Object current = storage[index];
         while (current != null) {
-            if (current.equals(t)) {
+            if (current.equals(t) && !deletedMark[index]) {
                 return false;
+            }
+            if (deletedMark[index]) {
+                deletedIndex = index;
             }
             index = (index + 1) % capacity;
             if (index == startingIndex) {
@@ -77,35 +84,55 @@ public class OpenAddressingSet<T> extends AbstractSet<T> {
             }
             current = storage[index];
         }
+        if (deletedIndex != -1) {
+            index = deletedIndex;
+        }
         storage[index] = t;
+        deletedMark[index] = false;
         size++;
         return true;
     }
 
     /**
      * Удаление элемента из таблицы
-     *
+     * <p>
      * Если элемент есть в таблица, функция удаляет его из дерева и возвращает true.
      * В ином случае функция оставляет множество нетронутым и возвращает false.
      * Высота дерева не должна увеличиться в результате удаления.
-     *
+     * <p>
      * Спецификация: {@link Set#remove(Object)} (Ctrl+Click по remove)
-     *
+     * <p>
      * Средняя
      */
+
     @Override
     public boolean remove(Object o) {
-        return super.remove(o);
+        int startingIndex = startingIndex(o);
+        int index = startingIndex;
+        Object current = storage[index];
+        while (current != null) {
+            if (current.equals(o) && !deletedMark[index]) {
+                deletedMark[index] = true;
+                size--;
+                return true;
+            }
+            index = (index + 1) % capacity;
+            if (index == startingIndex) {
+                return false;
+            }
+            current = storage[index];
+        }
+        return false;
     }
 
     /**
      * Создание итератора для обхода таблицы
-     *
+     * <p>
      * Не забываем, что итератор должен поддерживать функции next(), hasNext(),
      * и опционально функцию remove()
-     *
+     * <p>
      * Спецификация: {@link Iterator} (Ctrl+Click по Iterator)
-     *
+     * <p>
      * Средняя (сложная, если поддержан и remove тоже)
      */
     @NotNull
@@ -113,5 +140,15 @@ public class OpenAddressingSet<T> extends AbstractSet<T> {
     public Iterator<T> iterator() {
         // TODO
         throw new NotImplementedError();
+    }
+
+    @Override
+    public String toString() {
+        return "OpenAddressingSet{" + Arrays.toString(storage) + " " +
+                Arrays.toString(deletedMark) + '}';
+    }
+
+    public static void main(String[] args) {
+
     }
 }
