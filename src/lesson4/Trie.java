@@ -88,6 +88,8 @@ public class Trie extends AbstractSet<String> implements Set<String> {
      * <p>
      * Сложная
      */
+    //Ресурсоёмкость O(n)
+    //Трудоёмкость O(1)
     @NotNull
     @Override
     public Iterator<String> iterator() {
@@ -101,17 +103,21 @@ public class Trie extends AbstractSet<String> implements Set<String> {
 
         private PrefixTreeIterator() {
             stack = new ArrayDeque<>();
-            Iterator<Map.Entry<Character, Node>> rootIterator = root.children.entrySet().iterator(); //first letters iterator
+            Iterator<Map.Entry<Character, Node>> rootIterator = root.children.entrySet().iterator();
             if (rootIterator.hasNext()) {
                 stack.push(rootIterator);
             }
         }
 
+        //Трудоёмкость O(1)
         @Override
         public boolean hasNext() {
             return !stack.isEmpty();
         }
 
+        //Трудоёмкость равна трудоёмкости операций PrefixTree:
+        // O(maxLength * log(alphabet)) - в худшем случае
+        // O(averageLenght * log(alphabet)) - в среднем?)
         @Override
         public String next() {
             setNext();
@@ -141,7 +147,7 @@ public class Trie extends AbstractSet<String> implements Set<String> {
         }
 
         private void resetToTheStartOfNextWord() {
-            //deleting Nth letter to select another
+            //deleting last letter to select another
             builder.deleteCharAt(builder.length() - 1);
             while (stack.size() > 0 && !stack.peek().hasNext()) {
                 //no another letter n => deleting letter (n - 1) to select another (n - 1)th letter
@@ -155,6 +161,7 @@ public class Trie extends AbstractSet<String> implements Set<String> {
             }
         }
 
+        //Трудоёмкость O(1)
         @Override
         public void remove() {
             if (removeFrom == null) {

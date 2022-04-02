@@ -104,6 +104,8 @@ public class OpenAddressingSet<T> extends AbstractSet<T> {
      * Средняя
      */
 
+    //Трудоёмкость remove, add и contains зависит от коэфициента заполнения таблицы A = (size / capacity)
+    // и примерно равна (1 / (1 - A))
     @Override
     public boolean remove(Object o) {
         int startingIndex = startingIndex(o);
@@ -134,6 +136,8 @@ public class OpenAddressingSet<T> extends AbstractSet<T> {
      * <p>
      * Средняя (сложная, если поддержан и remove тоже)
      */
+    //Рерурсоёмкость O(1)
+    //Трудоёмкость - трудоёмкость операции next()
     @NotNull
     @Override
     public Iterator<T> iterator() {
@@ -149,11 +153,13 @@ public class OpenAddressingSet<T> extends AbstractSet<T> {
             next = setNext();
         }
 
+        //Трудоёмоксть O(1)
         @Override
         public boolean hasNext() {
             return next != null;
         }
 
+        //Трудоёмкость зависит от коэфициента заполнения таблицы A = (size / capacity) и в среднем равна (1 / A)
         @Override
         public T next() {
             if (next == null) {
@@ -165,6 +171,7 @@ public class OpenAddressingSet<T> extends AbstractSet<T> {
             return (T) nextToGive;
         }
 
+        //Сложность O(1)
         @Override
         public void remove() {
             System.out.println(lastReturnedIndex);
@@ -177,17 +184,12 @@ public class OpenAddressingSet<T> extends AbstractSet<T> {
         }
 
         private Object setNext() {
-            if (nextPossibleIndex >= capacity) {
-                return null;
-            }
-            while (storage[nextPossibleIndex] == null || deletedMark[nextPossibleIndex]) {
+            while ((nextPossibleIndex < capacity)
+                    && (storage[nextPossibleIndex] == null || deletedMark[nextPossibleIndex])) {
                 nextPossibleIndex++;
-                if (nextPossibleIndex >= capacity) {
-                    return null;
-                }
             }
-            nextPossibleIndex++;
-            return storage[nextPossibleIndex - 1];
+            int nextIndex = nextPossibleIndex++;
+            return nextIndex < capacity ? storage[nextIndex] : null;
         }
     }
 }

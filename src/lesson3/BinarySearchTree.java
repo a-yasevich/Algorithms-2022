@@ -47,7 +47,7 @@ public class BinarySearchTree<T extends Comparable<T>> extends AbstractSet<T> im
         }
     }
 
-    //Сложность O(log(n))
+    //Сложность O(log(n)) - в среднем, O(n) - в худшем случае
     @Override
     public boolean contains(Object o) {
         @SuppressWarnings("unchecked")
@@ -66,7 +66,7 @@ public class BinarySearchTree<T extends Comparable<T>> extends AbstractSet<T> im
      * <p>
      * Пример
      */
-    //Сложность O(log(n))
+    //Сложность O(log(n)) - в среднем, O(n) - в худшем случае
     @Override
     public boolean add(T t) {
         Node<T> closest = find(t);
@@ -104,7 +104,7 @@ public class BinarySearchTree<T extends Comparable<T>> extends AbstractSet<T> im
      * <p>
      * Средняя
      */
-    //Сложность O(log(n))
+    //Сложность O(log(n)) - в среднем, O(n) - в худшем случае
     @Override
     public boolean remove(Object o) {
         if (root == null) {
@@ -176,7 +176,7 @@ public class BinarySearchTree<T extends Comparable<T>> extends AbstractSet<T> im
         return null;
     }
 
-    //Сложность O(log(n))
+    //Сложность O(log(n)) - в среднем, O(n) - в худшем случае
     //Ресурсоёмкость O(n)
     @NotNull
     @Override
@@ -339,7 +339,7 @@ public class BinarySearchTree<T extends Comparable<T>> extends AbstractSet<T> im
         return subTree;
     }
 
-    //Сложность O(log(n))
+    //Сложность O(log(n)) - в среднем, O(n) - в худшем случае
     @Override
     public T first() {
         if (root == null) throw new NoSuchElementException();
@@ -350,7 +350,7 @@ public class BinarySearchTree<T extends Comparable<T>> extends AbstractSet<T> im
         return current.value;
     }
 
-    //Сложность O(log(n))
+    //Сложность O(log(n)) - в среднем, O(n) - в худшем случае
     @Override
     public T last() {
         if (root == null) throw new NoSuchElementException();
@@ -392,7 +392,7 @@ public class BinarySearchTree<T extends Comparable<T>> extends AbstractSet<T> im
             this.parentTree = parentTree;
         }
 
-        //Сложность O(log(n))
+        //Сложность O(log(n)) - в среднем, O(n) - в худшем случае
         @Override
         public boolean contains(Object o) {
             T t = (T) o;
@@ -402,7 +402,7 @@ public class BinarySearchTree<T extends Comparable<T>> extends AbstractSet<T> im
             return parentTree.contains(o);
         }
 
-        //Сложность O(log(n))
+        //Сложность O(log(n)) - в среднем, O(n) - в худшем случае
         @Override
         public boolean add(T t) {
             if (!isValueValid(t)) {
@@ -411,7 +411,7 @@ public class BinarySearchTree<T extends Comparable<T>> extends AbstractSet<T> im
             return parentTree.add(t);
         }
 
-        //Сложность O(log(n))
+        //Сложность O(log(n)) - в среднем, O(n) - в худшем случае
         @Override
         public boolean remove(Object o) {
             T t = (T) o;
@@ -421,7 +421,7 @@ public class BinarySearchTree<T extends Comparable<T>> extends AbstractSet<T> im
             return parentTree.remove(o);
         }
 
-        //Сложность O(log(n))
+        //Сложность O(log(n)) - в среднем, O(n) - в худшем случае
         @Override
         public T first() {
             Node<T> closest = findFirst(parentTree.root);
@@ -431,7 +431,7 @@ public class BinarySearchTree<T extends Comparable<T>> extends AbstractSet<T> im
             return closest.value;
         }
 
-        //Сложность O(log(n))
+        //Сложность O(log(n)) - в среднем, O(n) - в худшем случае
         @Override
         public T last() {
             Node<T> closest = findLast(parentTree.root);
