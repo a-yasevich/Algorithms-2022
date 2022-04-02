@@ -1,6 +1,5 @@
 package lesson5;
 
-import kotlin.NotImplementedError;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -138,17 +137,57 @@ public class OpenAddressingSet<T> extends AbstractSet<T> {
     @NotNull
     @Override
     public Iterator<T> iterator() {
-        // TODO
-        throw new NotImplementedError();
+        return new OpenAddressingSetIterator<>();
     }
 
-    @Override
-    public String toString() {
-        return "OpenAddressingSet{" + Arrays.toString(storage) + " " +
-                Arrays.toString(deletedMark) + '}';
-    }
+    private class OpenAddressingSetIterator<T> implements Iterator<T> {
+        Object next;
+        int nextPossibleIndex = 0;
+        int lastReturnedIndex = -1;
 
-    public static void main(String[] args) {
+        public OpenAddressingSetIterator() {
+            next = setNext();
+        }
 
+        @Override
+        public boolean hasNext() {
+            return next != null;
+        }
+
+        @Override
+        public T next() {
+            if (next == null) {
+                throw new NoSuchElementException();
+            }
+            Object nextToGive = next;
+            lastReturnedIndex = nextPossibleIndex - 1;
+            next = setNext();
+            return (T) nextToGive;
+        }
+
+        @Override
+        public void remove() {
+            System.out.println(lastReturnedIndex);
+            if (lastReturnedIndex < 0) {
+                throw new IllegalStateException();
+            }
+            deletedMark[lastReturnedIndex] = true;
+            size--;
+            lastReturnedIndex = -1;
+        }
+
+        private Object setNext() {
+            if (nextPossibleIndex >= capacity) {
+                return null;
+            }
+            while (storage[nextPossibleIndex] == null || deletedMark[nextPossibleIndex]) {
+                nextPossibleIndex++;
+                if (nextPossibleIndex >= capacity) {
+                    return null;
+                }
+            }
+            nextPossibleIndex++;
+            return storage[nextPossibleIndex - 1];
+        }
     }
 }
