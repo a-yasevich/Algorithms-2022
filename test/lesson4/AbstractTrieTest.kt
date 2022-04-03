@@ -68,6 +68,22 @@ abstract class AbstractTrieTest {
         }
     }
 
+    protected fun doMyTest() {
+        val trie = Trie()
+        assertFalse(trie.iterator().hasNext(), "Iterator of an empty set should not have any next elements")
+        trie.add("Artem")
+        val iterator = trie.iterator()
+        assertFailsWith<IllegalStateException>("Something was removed without any next() calling") {
+            iterator.remove()
+        }
+        assertTrue(iterator.hasNext(), "Iterator of non empty set is empty")
+        assertEquals("Artem", iterator.next(), "The element is not as expected")
+        assertFalse(iterator.hasNext(), "Iterator has something after returning a single value")
+        iterator.remove()
+        assertTrue(trie.isEmpty(), "Iterator didn't removed entry from set")
+
+    }
+
     protected fun doIteratorTest() {
         implementationTest { create().iterator().hasNext() }
         implementationTest { create().iterator().next() }

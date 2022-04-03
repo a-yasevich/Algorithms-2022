@@ -16,6 +16,12 @@ class OpenAddressingSetTest : AbstractOpenAddressingSetTest() {
     }
 
     @Test
+    @Tag("Example")
+    fun myTest() {
+        doMyTest()
+    }
+
+    @Test
     @Tag("7")
     fun removeTestJava() {
         doRemoveTest()

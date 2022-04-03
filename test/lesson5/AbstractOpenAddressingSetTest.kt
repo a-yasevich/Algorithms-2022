@@ -40,6 +40,21 @@ abstract class AbstractOpenAddressingSetTest {
         }
     }
 
+    protected fun doMyTest() {
+        val set = OpenAddressingSet<String>(4)
+        assertFalse(set.iterator().hasNext(), "Iterator of an empty set should not have any next elements")
+        set.add("Artem")
+        val iterator = set.iterator()
+        assertFailsWith<IllegalStateException>("Something was removed without any next() calling") {
+            iterator.remove()
+        }
+        assertTrue(iterator.hasNext(), "Iterator of non empty set is empty")
+        assertEquals("Artem", iterator.next(), "The element is not as expected")
+        assertFalse(iterator.hasNext(), "Iterator has something after returning a single value")
+        iterator.remove()
+        assertTrue(set.isEmpty(), "Iterator didn't removed entry from set")
+    }
+
     protected fun doRemoveTest() {
         val random = Random()
         for (iteration in 1..100) {
