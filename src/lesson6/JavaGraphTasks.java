@@ -1,7 +1,6 @@
 package lesson6;
 
 import kotlin.NotImplementedError;
-import kotlin.Pair;
 import lesson6.impl.GraphBuilder;
 
 import java.util.*;
@@ -35,7 +34,45 @@ public class JavaGraphTasks {
      * связного графа ровно по одному разу
      */
     public static List<Graph.Edge> findEulerLoop(Graph graph) {
-        throw new NotImplementedError();
+        for (Graph.Vertex vertex : graph.getVertices()) {
+            Set<Graph.Vertex> neighbours = graph.getNeighbors(vertex);
+            if (neighbours.size() == 0 || neighbours.size() % 2 != 0) {
+                return Collections.emptyList();
+            }
+        }
+        Optional<Graph.Vertex> start = graph.getVertices().stream().findFirst();
+        if (start.isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<Graph.Edge> loop = new ArrayList<>();
+        Set<Graph.Edge> traversedEdges = new HashSet<>();
+        eulerLoopDFS(start.get(), null, traversedEdges, loop, graph);
+        return loop;
+    }
+
+    private static Set<Graph.Vertex> neighboursOnUntraversedEdges(Graph.Vertex vertex, Set<Graph.Edge> traversedEdges, Graph graph) {
+        Set<Graph.Vertex> neighbours = new HashSet<>();
+        for (Graph.Vertex neighbour : graph.getNeighbors(vertex)) {
+            Graph.Edge edgeToNeighbour = graph.getConnection(vertex, neighbour);
+            if (!traversedEdges.contains(edgeToNeighbour)) {
+                neighbours.add(neighbour);
+            }
+        }
+        return neighbours;
+    }
+
+    private static void eulerLoopDFS(Graph.Vertex vertex, Graph.Vertex wentFrom, Set<Graph.Edge> traversedEdges, List<Graph.Edge> loop, Graph graph) {
+        if (wentFrom != null) {
+            traversedEdges.add(graph.getConnection(wentFrom, vertex));
+        }
+        Set<Graph.Vertex> neighbours;
+        while (!(neighbours = neighboursOnUntraversedEdges(vertex, traversedEdges, graph)).isEmpty()) {
+            Graph.Vertex neighbour = neighbours.stream().findFirst().get();
+            eulerLoopDFS(neighbour, vertex, traversedEdges, loop, graph);
+        }
+        if (wentFrom != null) {
+            loop.add(graph.getConnection(wentFrom, vertex));
+        }
     }
 
     /**
@@ -202,19 +239,20 @@ public class JavaGraphTasks {
 
     public static void main(String[] args) {
         GraphBuilder builder = new GraphBuilder();
-        Graph.Vertex r = builder.addVertex("R");
         Graph.Vertex d = builder.addVertex("D");
         Graph.Vertex e = builder.addVertex("E");
         Graph.Vertex f = builder.addVertex("F");
         Graph.Vertex a = builder.addVertex("A");
         Graph.Vertex b = builder.addVertex("B");
         Graph.Vertex c = builder.addVertex("C");
+        builder.addConnection(a, b, 0);
+        builder.addConnection(b, c, 0);
+        builder.addConnection(c, d, 0);
         builder.addConnection(d, a, 0);
-        builder.addConnection(d, b, 0);
-        builder.addConnection(d, c, 0);
-        builder.addConnection(r, e, 0);
-        builder.addConnection(r, d, 0);
-        builder.addConnection(r, f, 0);
-        System.out.println("Res = " + largestIndependentVertexSet(builder.build()));
+        builder.addConnection(d, e, 0);
+        builder.addConnection(e, f, 0);
+        builder.addConnection(f, d, 0);
+
+        System.out.println("Res = " + findEulerLoop(builder.build()));
     }
 }
