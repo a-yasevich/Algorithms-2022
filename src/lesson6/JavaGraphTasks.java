@@ -1,6 +1,7 @@
 package lesson6;
 
 import kotlin.NotImplementedError;
+import kotlin.Pair;
 import lesson6.impl.GraphBuilder;
 
 import java.util.*;
@@ -33,6 +34,8 @@ public class JavaGraphTasks {
      * Справка: Эйлеров цикл -- это цикл, проходящий через все рёбра
      * связного графа ровно по одному разу
      */
+    //Трудоёмкость O(V + E)
+    //Рерурсоёмкость O(E)
     public static List<Graph.Edge> findEulerLoop(Graph graph) {
         for (Graph.Vertex vertex : graph.getVertices()) {
             Set<Graph.Vertex> neighbours = graph.getNeighbors(vertex);
@@ -131,52 +134,81 @@ public class JavaGraphTasks {
      * <p>
      * Если на входе граф с циклами, бросить IllegalArgumentException
      */
+    //Трудоёмкость O(V + E)
+    //Ресурсоёмкость O(V)
     public static Set<Graph.Vertex> largestIndependentVertexSet(Graph graph) {
-        Optional<Graph.Vertex> first = graph.getVertices().stream().findFirst();
-        if (first.isEmpty()) {
-            return new HashSet<>();
-        }
-        Set<Graph.Vertex> res = new HashSet<>();
-        Set<Pair<Graph.Vertex, Boolean>> visitedSet = new HashSet<>();
-        for (Graph.Vertex vertex : graph.getVertices()) {
-            Set<Graph.Vertex> inclusive = recursiveLIVS(graph, visitedSet, vertex, null, true);
-            Set<Graph.Vertex> exclusives = recursiveLIVS(graph, visitedSet, vertex, null, false);
-            Set<Graph.Vertex> biggest = inclusive.size() >= exclusives.size() ? inclusive : exclusives;
-            res.addAll(biggest);
-        }
-        return res;
-    }
-
-    private static Set<Graph.Vertex> recursiveLIVS(Graph graph, Set<Pair<Graph.Vertex, Boolean>> visitedSet, Graph.Vertex vertex, Graph.Vertex from, boolean include) {
-        Set<Graph.Vertex> neighbors = graph.getNeighbors(vertex);
-        if (visitedSet.contains(new Pair<>(vertex, include))) {
+        Set<Graph.Vertex> vertices = graph.getVertices();
+        if (vertices.isEmpty()) {
             return Collections.emptySet();
         }
-        if (from != null) {
-            neighbors.remove(from);
+        //Вершина -> Пара(Размер независимого множества вершин включающего данную вершину и размер н.м.в. не вкл. данную вершину)
+        Map<Graph.Vertex, Pair<Integer, Integer>> d = new HashMap<>();
+        Set<Graph.Vertex> livs = new HashSet<>();
+        for (Graph.Vertex vertex : vertices) {
+            livs.addAll(livsDynamic(graph, d));
         }
-        visitedSet.add(new Pair<>(vertex, include));
-        Set<Graph.Vertex> res = new HashSet<>();
-        if (neighbors.isEmpty()) {
-            if (include) {
-                res.add(vertex);
+        return livs;
+    }
+
+    //Трудоёмоксть O(V + E)
+    //Ресурсоёмкость O(V)
+    private static Set<Graph.Vertex> livsDynamic(Graph graph, Map<Graph.Vertex, Pair<Integer, Integer>> d) {
+        Optional<Graph.Vertex> first = graph.getVertices().stream().filter(vertex -> !d.containsKey(vertex)).findFirst();
+        if (first.isEmpty()) {
+            return Collections.emptySet();
+        }
+        List<Graph.Vertex> treeNodes = treeNodesBFS(first.get(), d, graph);
+        for (int i = treeNodes.size() - 1; i >= 0; i--) {
+            Graph.Vertex vertex = treeNodes.get(i);
+            int includingCurrent = 1;
+            int excludingCurrent = 0;
+            for (Graph.Vertex neighbour : graph.getNeighbors(vertex)) {
+                Pair<Integer, Integer> pair = d.get(neighbour);
+                if (pair == null) {
+                    //Это родитель данной вершины
+                    continue;
+                }
+                includingCurrent += pair.getSecond();
+                excludingCurrent += Math.max(pair.getFirst(), pair.getSecond());
             }
-            return res;
+            d.put(vertex, new Pair<>(includingCurrent, excludingCurrent));
         }
-        if (include) {
-            res.add(vertex);
-            for (Graph.Vertex neighbour : neighbors) {
-                res.addAll(recursiveLIVS(graph, visitedSet, neighbour, vertex, false));
-            }
-            return res;
+        Set<Graph.Vertex> answer = new HashSet<>();
+        makeAnswerDFS(first.get(), null, false, d, answer, graph);
+        return answer;
+    }
+
+    //Трудоёмоксть O(V + E)
+    //Ресурсоёмкость O(V)
+    private static List<Graph.Vertex> treeNodesBFS(Graph.Vertex first, Map<Graph.Vertex, Pair<Integer, Integer>> d, Graph graph) {
+        Queue<Graph.Vertex> queue = new ArrayDeque<>();
+        List<Graph.Vertex> treeNodes = new ArrayList<>();
+        queue.add(first);
+        treeNodes.add(first);
+        d.put(first, null);
+        while (!queue.isEmpty()) {
+            Graph.Vertex vertex = queue.remove();
+            Set<Graph.Vertex> neighbours = graph.getNeighbors(vertex);
+            neighbours.removeAll(d.keySet());
+            treeNodes.addAll(neighbours);
+            queue.addAll(neighbours);
+            d.put(vertex, null);
         }
-        for (Graph.Vertex neighbour : neighbors) {
-            Set<Graph.Vertex> inclusive = recursiveLIVS(graph, visitedSet, neighbour, vertex, true);
-            Set<Graph.Vertex> exclusives = recursiveLIVS(graph, visitedSet, neighbour, vertex, false);
-            Set<Graph.Vertex> biggest = inclusive.size() >= exclusives.size() ? inclusive : exclusives;
-            res.addAll(biggest);
+        return treeNodes;
+    }
+
+    //O(V + E)
+    private static void makeAnswerDFS(Graph.Vertex vertex, Graph.Vertex parent, boolean parentIncluded,
+                                      Map<Graph.Vertex, Pair<Integer, Integer>> d, Set<Graph.Vertex> ans, Graph graph) {
+        boolean includeCurrent = !parentIncluded && (d.get(vertex).getFirst() >= d.get(vertex).getSecond());
+        if (includeCurrent) {
+            ans.add(vertex);
         }
-        return res;
+        Set<Graph.Vertex> neighbours = graph.getNeighbors(vertex);
+        neighbours.remove(parent);
+        for (Graph.Vertex neighbour : neighbours) {
+            makeAnswerDFS(neighbour, vertex, includeCurrent, d, ans, graph);
+        }
     }
 
     /**
@@ -237,22 +269,4 @@ public class JavaGraphTasks {
         throw new NotImplementedError();
     }
 
-    public static void main(String[] args) {
-        GraphBuilder builder = new GraphBuilder();
-        Graph.Vertex d = builder.addVertex("D");
-        Graph.Vertex e = builder.addVertex("E");
-        Graph.Vertex f = builder.addVertex("F");
-        Graph.Vertex a = builder.addVertex("A");
-        Graph.Vertex b = builder.addVertex("B");
-        Graph.Vertex c = builder.addVertex("C");
-        builder.addConnection(a, b, 0);
-        builder.addConnection(b, c, 0);
-        builder.addConnection(c, d, 0);
-        builder.addConnection(d, a, 0);
-        builder.addConnection(d, e, 0);
-        builder.addConnection(e, f, 0);
-        builder.addConnection(f, d, 0);
-
-        System.out.println("Res = " + findEulerLoop(builder.build()));
-    }
 }
