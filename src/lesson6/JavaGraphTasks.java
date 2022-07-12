@@ -4,7 +4,18 @@ import kotlin.NotImplementedError;
 import kotlin.Pair;
 import lesson6.impl.GraphBuilder;
 
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Queue;
+import java.util.Set;
+import java.util.stream.IntStream;
 
 @SuppressWarnings("unused")
 public class JavaGraphTasks {
@@ -107,7 +118,45 @@ public class JavaGraphTasks {
      * J ------------ K
      */
     public static Graph minimumSpanningTree(Graph graph) {
-        throw new NotImplementedError();
+        Optional<Graph.Vertex> start = graph.getVertices().stream().findAny();
+        if (start.isEmpty()) {
+            return graph; //empty graph
+        }
+        //PriorityQueue<Graph.Edge> costs = new PriorityQueue<>(Comparator.comparingInt(Graph.Edge::getWeight)); //ways to add vertex and its cost
+        ArrayList<Graph.Edge> costs = new ArrayList<>();
+        for (Graph.Vertex neighbour : graph.getNeighbors(start.get())) {
+            costs.add(graph.getConnection(start.get(), neighbour));
+        }
+        GraphBuilder minSpanningTree = new GraphBuilder();
+        Set<Graph.Vertex> visited = new HashSet<>();
+        visited.add(start.get());
+        while (visited.size() != graph.getVertices().size()) {
+            int minIndex = IntStream.range(0, costs.size()).boxed()
+                    .filter(index -> {
+                        Graph.Edge edge = costs.get(index);
+                        return !(visited.contains(edge.getBegin()) && visited.contains(edge.getEnd()));
+                    })
+                    .min(Comparator.comparingInt(o -> costs.get(o).getWeight()))
+                    .get();
+            Graph.Edge cheapest = costs.remove(minIndex);
+            Graph.Vertex addedVertex = visited.contains(cheapest.getBegin()) ? cheapest.getEnd() : cheapest.getBegin();
+            addConnection(minSpanningTree, cheapest);
+            for (Graph.Vertex neighbour : graph.getNeighbors(addedVertex)) {
+                if (visited.contains(neighbour)) {
+                    continue; //We've already added it (But this doesn't completely avoid irrelevant options in the queue)
+                }
+                Graph.Edge edge = graph.getConnection(addedVertex, neighbour);
+                costs.add(edge);
+            }
+            visited.add(addedVertex);
+        }
+        return minSpanningTree.build();
+    }
+
+    private static void addConnection(GraphBuilder minSpanningTree, Graph.Edge min) {
+        minSpanningTree.addConnection(min.getBegin(), min.getEnd(), min.getWeight());
+        minSpanningTree.addVertex(min.getBegin());
+        minSpanningTree.addVertex(min.getEnd());
     }
 
     /**

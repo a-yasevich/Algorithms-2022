@@ -28,7 +28,7 @@ class GraphBuilder {
 
     private val connections = mutableMapOf<Vertex, Set<EdgeImpl>>()
 
-    private fun addVertex(v: Vertex) {
+    fun addVertex(v: Vertex) {
         vertices[v.name] = v
     }
 
