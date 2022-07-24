@@ -4,17 +4,8 @@ import kotlin.NotImplementedError;
 import kotlin.Pair;
 import lesson6.impl.GraphBuilder;
 
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Queue;
-import java.util.Set;
+import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.IntStream;
 
 @SuppressWarnings("unused")
@@ -139,7 +130,7 @@ public class JavaGraphTasks {
                     .min(Comparator.comparingInt(o -> costs.get(o).getWeight()))
                     .get();
             Graph.Edge cheapest = costs.remove(minIndex);
-            Graph.Vertex addedVertex = visited.contains(cheapest.getBegin()) ? cheapest.getEnd() : cheapest.getBegin();
+            Graph.Vertex addedVertex = certainVertexFromEdge(cheapest, v -> !visited.contains(v));
             addConnection(minSpanningTree, cheapest);
             for (Graph.Vertex neighbour : graph.getNeighbors(addedVertex)) {
                 if (visited.contains(neighbour)) {
