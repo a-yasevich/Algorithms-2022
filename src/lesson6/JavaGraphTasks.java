@@ -3,11 +3,20 @@ package lesson6;
 import kotlin.NotImplementedError;
 import kotlin.Pair;
 import lesson6.impl.GraphBuilder;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.PriorityQueue;
+import java.util.Queue;
+import java.util.Set;
 import java.util.function.Predicate;
-import java.util.stream.IntStream;
 
 import static java.lang.System.out;
 
@@ -125,7 +134,7 @@ public class JavaGraphTasks {
         visited.add(start.get());
         while (visited.size() != graph.getVertices().size()) {
             Graph.Edge cheapest = costs.remove();
-            if(visited.contains(cheapest.getBegin()) && visited.contains(cheapest.getEnd())){
+            if (visited.contains(cheapest.getBegin()) && visited.contains(cheapest.getEnd())) {
                 continue;
             }
             Graph.Vertex vertexToAdd = certainVertexFromEdge(cheapest, v -> !visited.contains(v));
@@ -273,6 +282,54 @@ public class JavaGraphTasks {
         throw new NotImplementedError();
     }
 
+    private static void dijkstra(Graph graph) {
+        Optional<Graph.Vertex> optionalStart = graph.getVertices().stream().findAny();
+        if (optionalStart.isEmpty()) {
+            return;
+        }
+
+        Map<Graph.Vertex, Pair<Graph.Vertex, Integer>> distances = new HashMap<>();
+        PriorityQueue<Graph.Edge> queue = new PriorityQueue<>(Comparator.comparingInt(Graph.Edge::getWeight));
+        Set<Graph.Vertex> visited = new HashSet<>();
+        Predicate<Graph.Vertex> notVisited = v -> !visited.contains(v);
+        Graph.Vertex start = optionalStart.get();
+        visited.add(start);
+        for (Graph.Edge connection : graph.getConnections(start).values()) {
+            Graph.Vertex neighbour = certainVertexFromEdge(connection, notVisited);
+            distances.put(neighbour, new Pair<>(start, connection.getWeight()));
+            queue.add(connection);
+        }
+
+        while (visited.size() != graph.getVertices().size()) {
+            Graph.Vertex cheapestVertex = certainVertexFromEdge(queue.remove(), notVisited);
+            for (Graph.Edge connection : graph.getConnections(cheapestVertex).values()) {
+                Graph.Vertex neighbour = certainVertexFromEdge(connection, v -> !v.equals(cheapestVertex));
+                if (visited.contains(neighbour)) continue;
+                int pathToCheapestVCost = distances.get(cheapestVertex).getSecond();
+                int pathToNeighbourCost = distances.getOrDefault(neighbour, new Pair<>(null, Integer.MAX_VALUE)).getSecond();
+                int pathBetween = connection.getWeight();
+                if (pathToCheapestVCost + pathBetween < pathToNeighbourCost) {
+                    distances.put(neighbour, new Pair<>(cheapestVertex, pathToCheapestVCost + pathBetween));
+                }
+                queue.add(graph.getConnection(cheapestVertex, neighbour));
+            }
+            visited.add(cheapestVertex);
+        }
+        //enjoy the distances
+    }
+
+    private static void unrollPath(Graph.Vertex currentVertex, Map<Graph.Vertex, Graph.Vertex> parents, Graph.Vertex startVertex) {
+        if (currentVertex.equals(startVertex)) {
+            out.print(currentVertex + " ");
+            return;
+        }
+        unrollPath(parents.get(currentVertex), parents, startVertex);
+        out.print(currentVertex + " ");
+    }
+
+    private static Graph.Vertex certainVertexFromEdge(Graph.Edge edge, Predicate<Graph.Vertex> predicate) {
+        return predicate.test(edge.getBegin()) ? edge.getBegin() : edge.getEnd();
+    }
 
     /**
      * Балда
